@@ -1,0 +1,65 @@
+rule setRendimientos "Resetear Rendimientos en 0" salience 100 {
+    when 
+        Parametro.Velocidad > 0
+    then
+        Respuesta.Dentro = 0;
+        Respuesta.Fuera = 0;
+        Retract("setRendimientos");
+}
+
+rule CalcularAltaVelocidad "Cuando la velocidad ha sido mayor a 80" salience 20 {
+    when
+        Parametro.Velocidad > 80
+    then
+        Respuesta.Fuera = Respuesta.Fuera + 1;
+        Retract("CalcularAltaVelocidad");
+}
+
+rule CalcularBajaVelocidad "Cuando la velocidad ha sido menor a 80" salience 18 {
+    when
+        Parametro.Velocidad < 80
+    then
+        Respuesta.Dentro = Respuesta.Dentro + 1;
+        Retract("CalcularBajaVelocidad");
+}
+
+rule CalcularDistancia "Cuando distancia mayor a 10" salience 10 {
+    when
+        Parametro.Distancia > 10
+    then
+        Respuesta.Dentro = Respuesta.Dentro + 1;
+        Retract("CalcularDistancia");
+}
+
+rule CalcularDistancia2 "Cuando distancia menor a 10" salience 8 {
+    when
+        Parametro.Distancia <= 10
+    then
+        Respuesta.Fuera = Respuesta.Fuera + 1;
+        Retract("CalcularDistancia2");
+}
+
+rule setRendimientoDentro "Decir como es el rendimiento"{
+    when
+        Respuesta.Dentro > Respuesta.Fuera
+    then
+        Respuesta.Rendimiento = "Dentro de los parametros";
+        Retract("setRendimientoDentro");
+}
+
+rule setRendimientoFuera "Decir como es el rendimiento"{
+    when
+        Respuesta.Fuera > Respuesta.Dentro
+    then
+        Respuesta.Rendimiento = "Fuera de los parametros";
+        Retract("setRendimientoFuera");
+}
+
+rule setRendimientoNormal "Decir como es el rendimiento"{
+    when
+        Respuesta.Fuera == Respuesta.Dentro
+    then
+        Respuesta.Rendimiento = "Normal";
+        Retract("setRendimientoNormal");
+}
+
