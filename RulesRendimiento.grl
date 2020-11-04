@@ -1,65 +1,543 @@
-rule setRendimientos "Resetear Rendimientos en 0" salience 100 {
-    when 
-        Parametro.Velocidad > 0
-    then
-        Respuesta.Dentro = 0;
-        Respuesta.Fuera = 0;
-        Retract("setRendimientos");
-}
+/*
+Kilometros recorridos (Sumatoria de todas las distancias de las rutas)
+Cantidad compostada
 
-rule CalcularAltaVelocidad "Cuando la velocidad ha sido mayor a 80" salience 20 {
+------------------------------------
+
+Parametro.Velocidad promedio (promedio -> velmedia de todas las rutas)  -> 70 < X <= 90  
+Parametro.Aceleracion (max del promedio)
+
+Temperatura Compostaje
+Humedad Compostaje
+Presion atmosferica Compostaje
+
+Temperatura (promedio de las rutas)
+Humedad (promedio de las rutas)
+Presion atmosferica (promedio de las rutas)
+
+Tipo via ???
+Parametro.Autonomia (km/cantidadcompostada)
+
+
+Respuesta.Codigo = 1 -> Dentro Parametros
+Respuesta.Codigo = 0 -> Fuera Parametros
+
+Parametro.Velocidad
+Parametro.Aceleracion
+Parametro.TemperaturaCompost
+Parametro.HumedadCompost
+Parametro.PresionCompost
+Parametro.TemperaturaRuta
+Parametro.HumedadRuta
+Parametro.PresionRuta
+Parametro.TipoVia
+Parametro.Autonomia
+
+Rendimiento
+Codigo
+
+*/
+
+
+rule setRendimiento1 "Condiciones ideales - Rendimiento dentro de parametros" salience 100 {
     when
-        Parametro.Velocidad > 80
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Rural" && Parametro.Autonomia >= 130 
     then
-        Respuesta.Fuera = Respuesta.Fuera + 1;
-        Retract("CalcularAltaVelocidad");
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento1";
+        Retract("setRendimiento1");
 }
 
-rule CalcularBajaVelocidad "Cuando la velocidad ha sido menor a 80" salience 18 {
+
+rule setRendimiento2 "Condiciones ideales - Rendimiento fuera de parametros" salience 100 {
     when
-        Parametro.Velocidad < 80
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Rural" && Parametro.Autonomia < 130
     then
-        Respuesta.Dentro = Respuesta.Dentro + 1;
-        Retract("CalcularBajaVelocidad");
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimiento2";
+        Retract("setRendimiento2");
 }
 
-rule CalcularDistancia "Cuando distancia mayor a 10" salience 10 {
+rule setRendimiento3 "Parametro.Velocidad diferente a ideal - Rendimiento dentro de parametros" salience 100 {
     when
-        Parametro.Distancia > 10
+        (Parametro.Velocidad < 70 || Parametro.Velocidad > 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Rural" && Parametro.Autonomia >= 86
     then
-        Respuesta.Dentro = Respuesta.Dentro + 1;
-        Retract("CalcularDistancia");
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento3";
+        Retract("setRendimiento3");
 }
 
-rule CalcularDistancia2 "Cuando distancia menor a 10" salience 8 {
+rule setRendimiento4 "Parametro.Velocidad diferente a ideal - Rendimiento fuera de parametros" salience 100 {
     when
-        Parametro.Distancia <= 10
+        (Parametro.Velocidad < 70 || Parametro.Velocidad > 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Rural" && Parametro.Autonomia < 86
     then
-        Respuesta.Fuera = Respuesta.Fuera + 1;
-        Retract("CalcularDistancia2");
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimiento4";
+        Retract("setRendimiento4");
 }
 
-rule setRendimientoDentro "Decir como es el rendimiento"{
+
+rule setRendimiento5 "Parametro.Aceleracion brusca - Rendimiento dentro de parametros" salience 100 {
     when
-        Respuesta.Dentro > Respuesta.Fuera
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion > 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Rural" && Parametro.Autonomia >= 78 
     then
-        Respuesta.Rendimiento = "Dentro de los parametros";
-        Retract("setRendimientoDentro");
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento5";
+        Retract("setRendimiento5");
 }
 
-rule setRendimientoFuera "Decir como es el rendimiento"{
+rule setRendimiento6 "Parametro.Aceleracion brusca - Rendimiento fuera de parametros" salience 100 {
     when
-        Respuesta.Fuera > Respuesta.Dentro
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion > 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Rural" && Parametro.Autonomia < 78 
     then
-        Respuesta.Rendimiento = "Fuera de los parametros";
-        Retract("setRendimientoFuera");
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimiento6";
+        Retract("setRendimiento6");
 }
 
-rule setRendimientoNormal "Decir como es el rendimiento"{
+rule setRendimiento7 "Temperatura Compostaje - Rendimiento dentro de parametros" salience 100 {
     when
-        Respuesta.Fuera == Respuesta.Dentro
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost > 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Rural" && Parametro.Autonomia >= 105 
     then
-        Respuesta.Rendimiento = "Normal";
-        Retract("setRendimientoNormal");
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento7";
+        Retract("setRendimiento7");
 }
 
+rule setRendimiento8 "Temperatura Compostaje - Rendimiento fuera de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost > 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Rural" && Parametro.Autonomia < 105  
+    then
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimiento8";
+        Retract("setRendimiento8");
+}
+
+
+rule setRendimiento9 "Humedad Compostaje- Rendimiento dentro de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost < 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Rural" && Parametro.Autonomia >= 125 
+    then
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento9";
+        Retract("setRendimiento9");
+}
+
+rule setRendimiento10 "Humedad Compostaje- Rendimiento dentro de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost < 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Rural" && Parametro.Autonomia < 125 
+    then
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimiento10";
+        Retract("setRendimiento10");
+}
+
+rule setRendimiento11 "Presion Compostaje - Rendimiento dentro de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost < 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Rural" && Parametro.Autonomia >= 120 
+    then
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento11";
+        Retract("setRendimiento11");
+}
+
+rule setRendimiento12 "Presion Compostaje - Rendimiento dentro de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost < 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Rural" && Parametro.Autonomia < 120 
+    then
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimiento12";
+        Retract("setRendimiento12");
+}
+
+rule setRendimiento13 "Temperatura Ruta - Rendimiento dentro de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta <= 20 || Parametro.TemperaturaRuta > 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Rural" && Parametro.Autonomia >= 115 
+    then
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento13";
+        Retract("setRendimiento13");
+}
+
+rule setRendimiento14 "Temperatura Ruta - Rendimiento fuera de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta <= 20 || Parametro.TemperaturaRuta > 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Rural" && Parametro.Autonomia < 115 
+    then
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimiento14";
+        Retract("setRendimiento14");
+}
+
+rule setRendimiento15 "Humedad Ruta - Rendimiento dentro de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta > 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Rural" && Parametro.Autonomia >= 125
+    then
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento15";
+        Retract("setRendimiento15");
+}
+
+rule setRendimiento16 "Humedad Ruta - Rendimiento fuera de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta > 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Rural" && Parametro.Autonomia < 125
+    then
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimiento16";
+        Retract("setRendimiento16");
+}
+
+rule setRendimiento17 "Presion Ruta - Rendimiento dentro de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta > 1015 && Parametro.TipoVia == "Rural" && Parametro.Autonomia >= 120 
+    then
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento17";
+        Retract("setRendimiento17");
+}
+
+rule setRendimiento18 "Presion Ruta - Rendimiento fuera de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta > 1015 && Parametro.TipoVia == "Rural" && Parametro.Autonomia < 120 
+    then
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimiento18";
+        Retract("setRendimiento18");
+}
+
+rule setRendimiento19 "Tipo via - Rendimiento dentro de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia >= 100 
+    then
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento19";
+        Retract("setRendimiento19");
+}
+
+rule setRendimiento20 "Tipo via - Rendimiento fuera de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia < 100 
+    then
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimient20";
+        Retract("setRendimiento20");
+}
+
+rule setRendimiento21 "Urbana Parametro.Velocidad - Rendimiento dentro de parametros" salience 100 {
+    when
+        (Parametro.Velocidad < 70 || Parametro.Velocidad > 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia >= 70 
+    then
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento21";
+        Retract("setRendimiento21");
+}
+
+rule setRendimiento22 "Urbana Parametro.Velocidad - Rendimiento fuera de parametros" salience 100 {
+    when
+        (Parametro.Velocidad < 70 || Parametro.Velocidad > 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia < 70 
+    then
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimiento22";
+        Retract("setRendimiento22");
+}
+
+rule setRendimiento23 "Urbana Parametro.Aceleracion - Rendimiento dentro de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion > 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia >= 60 
+    then
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento23";
+        Retract("setRendimiento23");
+}
+
+rule setRendimiento24 "Urbana Parametro.Aceleracion - Rendimiento fuera de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion > 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia < 60 
+    then
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimiento24";
+        Retract("setRendimiento24");
+}
+
+rule setRendimiento25 "Urbana Parametro.TemperaturaCompostaje - Rendimiento dentro de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost > 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia >= 85 
+    then
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento25";
+        Retract("setRendimiento25");
+}
+
+rule setRendimiento26 "Urbana Parametro.TemperaturaCompostaje - Rendimiento fuera de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost > 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia < 85 
+    then
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimiento26";
+        Retract("setRendimiento26");
+}
+
+rule setRendimiento27 "Urbana Parametro.HumedadCompostaje - Rendimiento dentro de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost < 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia >= 95
+    then
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento27";
+        Retract("setRendimiento27");
+}
+
+rule setRendimiento28 "Urbana Parametro.HumedadCompostaje - Rendimiento fuera de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost < 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia < 95
+    then
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimiento28";
+        Retract("setRendimiento28");
+}
+
+rule setRendimiento29 "Urbana Parametro.PresionCompostaje - Rendimiento dentro de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost < 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia >= 90 
+    then
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento29";
+        Retract("setRendimiento29");
+}
+
+rule setRendimiento30 "Urbana Parametro.PresionCompostaje - Rendimiento fuera de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost < 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia < 90 
+    then
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimiento30";
+        Retract("setRendimiento30");
+}
+
+rule setRendimiento31 "Urbana Parametro.TemperaturaRuta- Rendimiento dentro de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta <= 20 || Parametro.TemperaturaRuta > 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia >= 90 
+    then
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento31";
+        Retract("setRendimiento31");
+}
+
+rule setRendimiento32 "Urbana Parametro.TemperaturaRuta- Rendimiento fuera de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta <= 20 || Parametro.TemperaturaRuta > 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia < 90 
+    then
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimiento32";
+        Retract("setRendimiento32");
+}
+
+rule setRendimiento33 "Urbana Parametro.HumedadRuta - Rendimiento dentro de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta > 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia >= 95 
+    then
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento33";
+        Retract("setRendimiento33");
+}
+
+rule setRendimiento34 "Urbana Parametro.HumedadRuta - Rendimiento fuera de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta > 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia < 95
+    then
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimiento34";
+        Retract("setRendimiento34");
+}
+
+rule setRendimiento35 "Urbana Parametro.PresionRuta - Rendimiento dentro de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta > 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia >= 90 
+    then
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento35";
+        Retract("setRendimiento35");
+}
+
+rule setRendimiento36 "Urbana Parametro.PresionRuta - Rendimiento fuera de parametros" salience 100 {
+    when
+        (Parametro.Velocidad >= 70 && Parametro.Velocidad <= 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta > 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia < 90 
+    then
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimiento36";
+        Retract("setRendimiento36");
+}
+
+rule setRendimiento37 "Urbana Parametro.Velocidad Parametro.Aceleracion - Rendimiento dentro de parametros" salience 100 {
+    when
+        (Parametro.Velocidad < 70 || Parametro.Velocidad > 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia >= 42
+    then
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento37";
+        Retract("setRendimiento37");
+}
+
+rule setRendimiento38 "Urbana Parametro.Velocidad Parametro.Aceleracion - Rendimiento fuera de parametros" salience 100 {
+    when
+        (Parametro.Velocidad < 70 || Parametro.Velocidad > 90) && Parametro.Aceleracion > 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Rural" && Parametro.Autonomia < 42
+    then
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimiento38";
+        Retract("setRendimiento38");
+}
+
+rule setRendimiento39 "Urbana Parametro.Velocidad Parametro.TemperaturaCompostaje- Rendimiento dentro de parametros" salience 100 {
+    when
+        (Parametro.Velocidad < 70 || Parametro.Velocidad > 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost > 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia >= 59
+    then
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento39";
+        Retract("setRendimiento39");
+}
+
+rule setRendimiento40 "Urbana Parametro.Velocidad Parametro.TemperaturaCompostaje- Rendimiento fuera de parametros" salience 100 {
+    when
+        (Parametro.Velocidad < 70 || Parametro.Velocidad > 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost > 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia < 59
+    then
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimiento40";
+        Retract("setRendimiento40");
+}
+
+rule setRendimiento41 "Urbana Parametro.Velocidad Parametro.HumedadCompostaje - Rendimiento dentro de parametros" salience 100 {
+    when
+        (Parametro.Velocidad < 70 || Parametro.Velocidad > 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost < 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia >= 68 
+    then
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento41";
+        Retract("setRendimiento41");
+}
+
+rule setRendimiento42 "Urbana Parametro.Velocidad Parametro.HumedadCompostaje - Rendimiento fuera de parametros" salience 100 {
+    when
+        (Parametro.Velocidad < 70 || Parametro.Velocidad > 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost < 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia < 68 
+    then
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimiento42";
+        Retract("setRendimiento42");
+}
+
+rule setRendimiento43 "Urbana Parametro.Velocidad Parametro.PresionCompostaje - Rendimiento dentro de parametros" salience 100 {
+    when
+        (Parametro.Velocidad < 70 || Parametro.Velocidad > 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost < 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia >= 65 
+    then
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento43";
+        Retract("setRendimiento43");
+}
+
+rule setRendimiento44 "Urbana Parametro.Velocidad Parametro.PresionCompostaje - Rendimiento fuera de parametros" salience 100 {
+    when
+        (Parametro.Velocidad < 70 || Parametro.Velocidad > 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost < 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia < 65 
+    then
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimiento44";
+        Retract("setRendimiento44");
+}
+
+rule setRendimiento45 "Urbana Parametro.Velocidad Parametro.TemperaturaRuta - Rendimiento dentro de parametros" salience 100 {
+    when
+        (Parametro.Velocidad < 70 || Parametro.Velocidad > 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta <= 20 || Parametro.TemperaturaRuta > 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia >= 60 
+    then
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento45";
+        Retract("setRendimiento45");
+}
+
+rule setRendimiento46 "Urbana Parametro.Velocidad Parametro.TemperaturaRuta - Rendimiento fuera de parametros" salience 100 {
+    when
+        (Parametro.Velocidad < 70 || Parametro.Velocidad > 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta <= 20 || Parametro.TemperaturaRuta > 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia < 60 
+    then
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimiento46";
+        Retract("setRendimiento46");
+}
+
+rule setRendimiento47 "Urbana Parametro.Velocidad Parametro.HumedadRuta - Rendimiento dentro de parametros" salience 100 {
+    when
+        (Parametro.Velocidad < 70 || Parametro.Velocidad > 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta > 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia >= 68 
+    then
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento47";
+        Retract("setRendimiento47");
+}
+
+rule setRendimiento48 "Urbana Parametro.Velocidad Parametro.HumedadRuta - Rendimiento fuera de parametros" salience 100 {
+    when
+        (Parametro.Velocidad < 70 || Parametro.Velocidad > 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta > 80 && Parametro.PresionRuta <= 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia < 68 
+    then
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimiento48";
+        Retract("setRendimiento48");
+}
+
+rule setRendimiento49 "Urbana Parametro.Velocidad Parametro.PresionRuta - Rendimiento dentro de parametros" salience 100 {
+    when
+        (Parametro.Velocidad < 70 || Parametro.Velocidad > 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta > 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia >= 65
+    then
+        Respuesta.Rendimiento = "Dentro de parametros";
+        Respuesta.Codigo = 1;
+        Respuesta.Regla = "setRendimiento49";
+        Retract("setRendimiento49");
+}
+
+rule setRendimiento50 "Urbana Parametro.Velocidad Parametro.PresionRuta - Rendimiento fuera de parametros" salience 100 {
+    when
+        (Parametro.Velocidad < 70 || Parametro.Velocidad > 90) && Parametro.Aceleracion <= 7000 && Parametro.TemperaturaCompost <= 15 && Parametro.HumedadCompost >= 80 && Parametro.PresionCompost > 1015 && (Parametro.TemperaturaRuta >= 20 && Parametro.TemperaturaRuta <= 30) && Parametro.HumedadRuta <= 80 && Parametro.PresionRuta > 1015 && Parametro.TipoVia == "Urbana" && Parametro.Autonomia < 65
+    then
+        Respuesta.Rendimiento = "Fuera de parametros";
+        Respuesta.Codigo = 0;
+        Respuesta.Regla = "setRendimiento50";
+        Retract("setRendimiento50");
+}

@@ -15,43 +15,42 @@ import (
 )
 
 type Parametro struct {
-	Velocidad float64 `json:"velocidad,omitempty"`
-	Distancia float64 `json:"distancia,omitempty"`
+	Velocidad          float64 `json:"Velocidad,omitempty"`
+	Aceleracion        float64 `json:"Aceleracion,omitempty"`
+	TemperaturaCompost float64 `json:"TemperaturaCompost,omitempty"`
+	HumedadCompost     float64 `json:"HumedadCompost,omitempty"`
+	PresionCompost     float64 `json:"PresionCompost,omitempty"`
+	TemperaturaRuta    float64 `json:"TemperaturaRuta,omitempty"`
+	HumedadRuta        float64 `json:"HumedadRuta,omitempty"`
+	PresionRuta        float64 `json:"PresionRuta,omitempty"`
+	TipoVia            string  `json:"TipoVia,omitempty"`
+	Autonomia          float64 `json:"Autonomia,omitempty"`
 }
 
 type Respuesta struct {
-	Dentro      int    `json:"dentro"`
-	Fuera       int    `json:"fuera"`
-	Rendimiento string `json:"rendimiento"`
+	Rendimiento string `json:"Rendimiento"`
+	Codigo      int    `json:"Codigo"`
+	Regla       string `json:"Regla"`
 }
 
 func (rp *Respuesta) String() string {
-	return fmt.Sprintf("El rendimiento esta %s. Dentro = %d  Fuera = %d", rp.Rendimiento, rp.Dentro, rp.Fuera)
+	return fmt.Sprintf("El Rendimiento esta %s. Dentro = %d  Fuera = %d", rp.Rendimiento, rp.Codigo, rp.Regla)
 }
 
 var Parametros = &Parametro{
-	Velocidad: 0,
-	Distancia: 0,
+	Velocidad:          0,
+	Aceleracion:        0,
+	TemperaturaCompost: 0,
+	HumedadCompost:     0,
+	PresionCompost:     0,
+	TemperaturaRuta:    0,
+	HumedadRuta:        0,
+	PresionRuta:        0,
+	TipoVia:            "",
+	Autonomia:          0,
 }
 
 func calcularRendimientoEndPoint(writer http.ResponseWriter, request *http.Request) {
-
-	/*var parametro Parametro
-	_ = json.NewDecoder(request.Body).Decode(&parametro)
-	Parametros = &Parametro{
-		Velocidad: parametro.Velocidad,
-		Distancia: parametro.Distancia,
-	}
-	var response = CalcularRendimientos()
-	type allResults []Respuesta
-	var rosos = allResults{
-		{
-			Dentro:      response.Dentro,
-			Fuera:       response.Fuera,
-			Rendimiento: response.Rendimiento,
-		},
-	}
-	json.NewEncoder(writer).Encode(rosos)*/
 
 	var newParametro Parametro
 	reqBody, err := ioutil.ReadAll(request.Body)
@@ -61,23 +60,24 @@ func calcularRendimientoEndPoint(writer http.ResponseWriter, request *http.Reque
 
 	json.Unmarshal(reqBody, &newParametro)
 	Parametros = &Parametro{
-		Velocidad: newParametro.Velocidad,
-		Distancia: newParametro.Distancia,
+		Velocidad:          newParametro.Velocidad,
+		Aceleracion:        newParametro.Aceleracion,
+		TemperaturaCompost: newParametro.TemperaturaCompost,
+		HumedadCompost:     newParametro.HumedadCompost,
+		PresionCompost:     newParametro.PresionCompost,
+		TemperaturaRuta:    newParametro.TemperaturaRuta,
+		HumedadRuta:        newParametro.HumedadRuta,
+		PresionRuta:        newParametro.PresionRuta,
+		TipoVia:            newParametro.TipoVia,
+		Autonomia:          newParametro.Autonomia,
 	}
 
 	var response = CalcularRendimientos()
 	type allResults []Respuesta
-	var result = allResults{
-		{
-			Dentro:      response.Dentro,
-			Fuera:       response.Fuera,
-			Rendimiento: response.Rendimiento,
-		},
-	}
 
 	writer.Header().Set("Content-Type", "application/json")
 	writer.WriteHeader(http.StatusCreated)
-	json.NewEncoder(writer).Encode(result)
+	json.NewEncoder(writer).Encode(response)
 }
 
 func main() {
@@ -113,5 +113,4 @@ func CalcularRendimientos() (res *Respuesta) {
 
 	res = respuesta
 	return
-	//fmt.Println(respuesta.String())
 }
